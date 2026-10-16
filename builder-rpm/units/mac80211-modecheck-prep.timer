@@ -1,0 +1,10 @@
+[Unit]
+Description=Periodic retry of mac80211-modecheck autoprep
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1h
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

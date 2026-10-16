@@ -1,0 +1,23 @@
+# Kernel module build artifacts
+*.o
+.*.cmd
+*.ko
+*.mod
+*.mod.c
+modules.order
+Module.symvers
+.tmp_versions/
+
+# RPM build tree (rebuild with builder-rpm/build-rpm.sh)
+builder-rpm/rpmbuild/
+
+# Scratch / working directories
+work/
+work-*/
+dkms-test/
+
+# Misc
+__pycache__/
+*.pyc
+*~
+.DS_Store

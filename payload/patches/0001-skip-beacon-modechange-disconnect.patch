@@ -1,0 +1,21 @@
+--- a/net/mac80211/mlme.c
++++ b/net/mac80211/mlme.c
+@@ -1647,11 +1647,16 @@
+ 
+ 	if (ap_mode != link->u.mgd.conn.mode) {
+ 		link_info(link,
+-			  "AP %pM appears to change mode (expected %s, found %s) in %s, disconnect\n",
++			  "AP %pM appears to change mode (expected %s, found %s) in %s, ignoring\n",
+ 			  link->u.mgd.bssid,
+ 			  ieee80211_conn_mode_str(link->u.mgd.conn.mode),
+ 			  ieee80211_conn_mode_str(ap_mode), frame);
+-		return -EINVAL;
++		/*
++		 * Tolerate a transient mode flip in beacons (seen with H3C
++		 * campus APs); disconnecting here triggers reconnect storms.
++		 * Mismatches in assoc/reassoc responses keep old behavior.
++		 */
++		return stype == IEEE80211_STYPE_BEACON ? 0 : -EINVAL;
+ 	}
+ 
+ 	chanreq.oper = ap_chandef;

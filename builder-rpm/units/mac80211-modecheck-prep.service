@@ -1,0 +1,11 @@
+[Unit]
+Description=Build/install patched mac80211 (skip AP mode-change disconnects) for installed kernels
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/mac80211-modecheck-autoprep
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=1800
