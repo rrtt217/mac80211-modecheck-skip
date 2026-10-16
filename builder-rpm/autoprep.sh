@@ -116,7 +116,7 @@ WRAPEOF
 		rm -rf "$work" "$srcdir"; return 1
 	fi
 	cp "$PAYLOAD_DIR/dkms.conf" "$srcdir/dkms.conf"
-	sed -i "s|^BUILD_EXCLUSIVE_KERNEL=.*|BUILD_EXCLUSIVE_KERNEL=\"^$(printf '%s' "$krel" | sed 's/\./\\./g')\$\"|" "$srcdir/dkms.conf"
+	sed -i "s|^BUILD_EXCLUSIVE_KERNEL=.*|BUILD_EXCLUSIVE_KERNEL=\"^$(printf '%s' "$krel" | sed 's/\./\\\\./g')\$\"|" "$srcdir/dkms.conf"
 	cp "$PATCH_FILE" "$srcdir/patches/"
 	rm -rf "$work"
 
