@@ -1,5 +1,5 @@
 Name:           mac80211-modecheck-skip-builder
-Version:        1.0
+Version:        1.0.1
 Release:        1%{?dist}
 Summary:        Auto-builder for a patched mac80211 that ignores AP mode-change flips
 
@@ -79,5 +79,11 @@ systemctl daemon-reload >/dev/null 2>&1 || :
 %{_unitdir}/mac80211-modecheck-prep.timer
 
 %changelog
+* Thu Oct 29 2026 david - 1.0.1-1
+- Wait for in-progress kernel installs (the path unit fires before
+  modules.dep exists) and rescan; previously the build was delayed until
+  the hourly timer
+- Disable dkms AUTOINSTALL (template + enforced in generated configs) to
+  silence harmless BUILD_EXCLUSIVE skip warnings on kernel updates
 * Fri Oct 16 2026 david - 1.0-1
 - Initial package: per-kernel auto-build of the patched mac80211 via DKMS
