@@ -117,6 +117,8 @@ WRAPEOF
 	fi
 	cp "$PAYLOAD_DIR/dkms.conf" "$srcdir/dkms.conf"
 	sed -i "s|^BUILD_EXCLUSIVE_KERNEL=.*|BUILD_EXCLUSIVE_KERNEL=\"^$(printf '%s' "$krel" | sed 's/\./\\\\./g')\$\"|" "$srcdir/dkms.conf"
+	# 禁用 dkms 自带 autoinstall(对旧模板同样生效): 各内核的构建安装由本脚本负责
+	sed -i 's|^AUTOINSTALL=.*|AUTOINSTALL="no"|' "$srcdir/dkms.conf"
 	cp "$PATCH_FILE" "$srcdir/patches/"
 	rm -rf "$work"
 
@@ -133,15 +135,28 @@ WRAPEOF
 }
 
 do_prep() {
-	local d k rc running_installed=0
-	for d in /lib/modules/*/; do
-		k="${d%/}"; k="${k##*/}"
-		[[ -f "/lib/modules/$k/modules.dep" ]] || continue
-		rc=0
-		prep_kernel "$k" || rc=$?
-		if [[ $rc -eq 0 && "$k" == "$RUN_KREL" ]]; then
-			running_installed=1
-		fi
+	local d k rc running_installed=0 unstable i
+	for i in 1 2 3 4 5 6 7 8; do
+		unstable=0
+		for d in /lib/modules/*/; do
+			k="${d%/}"; k="${k##*/}"
+			if [[ ! -f "/lib/modules/$k/modules.dep" ]]; then
+				# 目录存在但 modules.dep 尚未生成: kernel 事务可能仍在进行(或为已移除内核的残留)
+				# path 单元只监听顶层目录, 装好内核后的后续变化不会再触发, 因此这里短暂等待复查
+				if [[ -n "$(find "/lib/modules/$k" -maxdepth 0 -mmin -30 2>/dev/null)" ]]; then
+					unstable=1
+				fi
+				continue
+			fi
+			rc=0
+			prep_kernel "$k" || rc=$?
+			if [[ $rc -eq 0 && "$k" == "$RUN_KREL" ]]; then
+				running_installed=1
+			fi
+		done
+		[[ $unstable -eq 0 ]] && break
+		log "检测到可能仍在安装中的内核(modules.dep 未就绪), 20 秒后复查 (第 $i 轮)"
+		sleep 20
 	done
 	if [[ $running_installed -eq 1 ]] \
 		&& lsmod | grep -q '^mac80211' \
